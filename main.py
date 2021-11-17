@@ -72,3 +72,23 @@ def process_request(self):
               self.addr)
     # Set selector to listen for write events, we're done reading.
     self._set_selector_events_mask('w')
+    
+ def queue_request(self):
+    content = self.request['content']
+    content_type = self.request['type']
+    content_encoding = self.request['encoding']
+    if content_type == 'text/json':
+        req = {
+            'content_bytes': self._json_encode(content, content_encoding),
+            'content_type': content_type,
+            'content_encoding': content_encoding
+        }
+    else:
+        req = {
+            'content_bytes': content,
+            'content_type': content_type,
+            'content_encoding': content_encoding
+        }
+    message = self._create_message(**req)
+    self._send_buffer += message
+    self._request_queued = True
